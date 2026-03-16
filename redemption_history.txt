@@ -1,0 +1,98 @@
+{
+  "last_redemption_date": "20260129",
+  "last_redemption_hour": 24,
+  "history": [
+    {
+      "date": "20260101",
+      "start_hour": 0,
+      "end_hour": 12,
+      "timestamp": "2026-01-29 11:08:21",
+      "files_generated": [
+        "RHBBSGSG_20260101_02.csv",
+        "DBSSSGSG_20260101_08.csv",
+        "UOVBSGSG_20260101_01.csv",
+        "MBBESGSG_20260101_02.csv",
+        "CITISGSG_20260101_02.csv",
+        "BKCHSGSG_20260101_02.csv",
+        "SCBLSGSG_20260101_01.csv",
+        "HSBCSGSG_20260101_02.csv"
+      ]
+    },
+    {
+      "date": "2026101",
+      "start_hour": 0,
+      "end_hour": 12,
+      "timestamp": "2026-01-29 11:49:29",
+      "files_generated": []
+    },
+    {
+      "date": "20260101",
+      "start_hour": 13,
+      "end_hour": 15,
+      "timestamp": "2026-01-29 16:59:49",
+      "files_generated": [
+        "CITISGSG_20260101_02.csv",
+        "RHBBSGSG_20260101_02.csv",
+        "BKCHSGSG_20260101_02.csv",
+        "DBSSSGSG_20260101_05.csv",
+        "MBBESGSG_20260101_01.csv",
+        "UOVBSGSG_20260101_01.csv",
+        "SCBLSGSG_20260101_01.csv",
+        "HSBCSGSG_20260101_01.csv"
+      ]
+    },
+    {
+      "date": "20260101",
+      "start_hour": 12,
+      "end_hour": 13,
+      "timestamp": "2026-01-29 17:08:07",
+      "files_generated": [
+        "DBSSSGSG_20260101_05.csv",
+        "BKCHSGSG_20260101_01.csv",
+        "HSBCSGSG_20260101_02.csv",
+        "RHBBSGSG_20260101_01.csv",
+        "SCBLSGSG_20260101_01.csv",
+        "UOVBSGSG_20260101_01.csv",
+        "CITISGSG_20260101_01.csv"
+      ]
+    },
+    {
+      "date": "20260101",
+      "start_hour": 15,
+      "end_hour": 23,
+      "timestamp": "2026-01-29 17:08:28",
+      "files_generated": [
+        "HSBCSGSG_20260101_02.csv",
+        "DBSSSGSG_20260101_08.csv",
+        "BKCHSGSG_20260101_02.csv",
+        "CITISGSG_20260101_02.csv",
+        "MBBESGSG_20260101_02.csv",
+        "SCBLSGSG_20260101_01.csv",
+        "UOVBSGSG_20260101_01.csv",
+        "RHBBSGSG_20260101_02.csv"
+      ]
+    },
+    {
+      "date": "20260101",
+      "start_hour": 23,
+      "end_hour": 24,
+      "timestamp": "2026-01-29 17:13:21",
+      "files_generated": [
+        "DBSSSGSG_20260101_03.csv",
+        "RHBBSGSG_20260101_01.csv",
+        "MBBESGSG_20260101_01.csv",
+        "HSBCSGSG_20260101_02.csv"
+      ]
+    },
+    {
+      "date": "20260129",
+      "start_hour": 0,
+      "end_hour": 24,
+      "timestamp": "2026-02-11 19:39:00",
+      "files_generated": [
+        "UOVBSGSG_20260129_01.csv",
+        "DBSSSGSG_20260129_01.csv"
+      ]
+    }
+  ]
+}

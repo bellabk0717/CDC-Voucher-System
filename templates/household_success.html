@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">
+    <title>Registration Successful</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Registration Successful!</h2>
+        <p>Your household has been registered successfully.</p>
+        
+        <div class="info-box">
+            <p><strong>Household ID:</strong> {{ household_id }}</p>
+            <p><strong>Name:</strong> {{ name }}</p>
+            <p><strong>Email:</strong> {{ email }}</p>
+            <p><strong>NRIC:</strong> {{ nric }}</p>
+        </div>
+        
+        <p class="note">Please save your Household ID for future reference.</p>
+        
+        <form action="/main" method="get">
+            <button type="submit">Back to Main</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h2>Singapore Household CDC Voucher System</h2>
+        <form action="/household" method="post">
+            <input type="submit" value="Household Registration">
+        </form>
+        <form action="/merchant" method="post">
+            <input type="submit" value="Merchant Registration">
+        </form>
+        <form action="/claim" method="post">
+            <input type="submit" value="Voucher Claim">
+        </form>
+        <form action="/consume" method="post">
+            <input type="submit" value="Extract CDC Balance & Consume">
+        </form>
+        <form action="/redemption" method="post">
+            <input type="submit" value="Redemption">
+        </form>
+        <form action="/logout" method="post">
+            <input type="submit" value="Logout">
+        </form>
+    </div>
+</body>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Voucher Claim</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+    .card {
+      width: 520px;
+      margin: 70px auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 32px;
+      box-shadow: 0 0 14px rgba(0,0,0,0.12);
+    }
+    h2 {
+      text-align: center;
+      margin: 0 0 22px 0;
+      color: #222;
+    }
+    label {
+      display: block;
+      margin-top: 14px;
+      font-weight: bold;
+      color: #333;
+    }
+    input, select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    .btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #4a80f5;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #2f66df;
+    }
+    .btn-secondary {
+      background: #e9eef7;
+      color: #1b2b4a;
+    }
+    .btn-secondary:hover {
+      background: #dbe4f5;
+    }
+    .result {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 6px;
+      display: none;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .success {
+      background: #e8fff0;
+      color: #1f7a3d;
+      border: 1px solid #b8f2cc;
+    }
+    .error {
+      background: #fff0f0;
+      color: #b42318;
+      border: 1px solid #ffd0d0;
+    }
+    .small {
+      color: #666;
+      font-size: 12px;
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Voucher Claim</h2>
+
+    <label for="household_id">Household ID</label>
+    <input id="household_id" type="text" placeholder="e.g., H91128044939" />
+
+    <label for="tranche">Tranche</label>
+    <select id="tranche">
+      <option value="">-- Select Tranche --</option>
+      <option value="May 2025">May 2025 ($500)</option>
+      <option value="Jan 2026">Jan 2026 ($300)</option>
+    </select>
+
+    <button class="btn btn-primary" onclick="submitClaim()">Claim</button>
+    <button class="btn btn-secondary" onclick="window.location.href='/main'">Back to Main</button>
+
+    <div id="result" class="result"></div>
+
+    <div class="small">
+      This page calls <b>POST /api/voucher/claim</b> and updates <b>household_data.json</b>.
+    </div>
+  </div>
+
+  <script>
+    function showResult(ok, htmlOrText) {
+      const div = document.getElementById("result");
+      div.style.display = "block";
+      div.className = "result " + (ok ? "success" : "error");
+      div.innerHTML = htmlOrText;
+    }
+
+    function submitClaim() {
+      const householdId = document.getElementById("household_id").value.trim();
+      const tranche = document.getElementById("tranche").value;
+
+      if (!householdId || !tranche) {
+        showResult(false, "Please enter <b>Household ID</b> and select a <b>Tranche</b>.");
+        return;
+      }
+
+      fetch("/api/voucher/claim", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          Household_ID: householdId,
+          Tranche_Time: tranche
+        })
+      })
+      .then(res => res.json().then(j => ({status: res.status, body: j})))
+      .then(({status, body}) => {
+        if (status >= 200 && status < 300 && body.status === "success") {
+          const s = body.summary || {};
+          const added = s.counts_added || {};
+          const now = s.counts_now || {};
+          showResult(true,
+            `<b>Claim Success ✅</b><br>
+             Household_ID: <b>${s.Household_ID || householdId}</b><br>
+             Tranche: <b>${s.Tranche_Time || tranche}</b><br>
+             Claim Time: <b>${s.claim_time || ""}</b><br><br>
+             <b>Added</b>: $2 x ${added["2"] ?? "-"}, $5 x ${added["5"] ?? "-"}, $10 x ${added["10"] ?? "-"}<br>
+             <b>Now</b>: $2 x ${now["2"] ?? "-"}, $5 x ${now["5"] ?? "-"}, $10 x ${now["10"] ?? "-"}`
+          );
+        } else {
+          showResult(false, body.message || "Claim failed.");
+        }
+      })
+      .catch(() => {
+        showResult(false, "Network / server error. Please try again.");
+      });
+    }
+  </script>
+</body>
+</html>

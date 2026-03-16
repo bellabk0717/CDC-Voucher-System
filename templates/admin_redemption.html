@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Redemption</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">
+    <style>
+        .form-group {
+            margin: 20px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .info-box {
+            background: #f0f8ff;
+            border: 1px solid #4a90e2;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        button {
+            margin-top: 10px;
+            margin-right: 10px;
+            padding: 12px 24px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-primary:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .loading {
+            display: none;
+            color: #666;
+            margin: 10px 0;
+        }
+        
+        .file-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .file-list li {
+            padding: 5px;
+            margin: 3px 0;
+            background: #f9f9f9;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Redemption Processing</h2>
+        <p>Process merchant reimbursements for CDC vouchers</p>
+        
+        {% if last_redemption %}
+        <div class="info-box">
+            <h3>Last Redemption Record</h3>
+            <p><strong>Date:</strong> {{ last_redemption.date }}</p>
+            <p><strong>Time Range:</strong> {{ '%02d'|format(last_redemption.start_hour) }}:00 - {{ '%02d'|format(last_redemption.end_hour - 1) }}:59</p>
+            <p><strong>Processed On:</strong> {{ last_redemption.timestamp }}</p>
+            <p><strong>Files Generated:</strong> {{ last_redemption.files_generated|length }}</p>
+        </div>
+        {% else %}
+        <div class="warning-box">
+            <p>⚠️ No previous redemption records found. This is the first redemption.</p>
+        </div>
+        {% endif %}
+        
+        <h3>New Redemption Request</h3>
+        
+        <form id="redemptionForm">
+            <div class="form-group">
+                <label for="reimburse_date">Redemption Date:</label>
+                <input type="text" 
+                       id="reimburse_date" 
+                       name="reimburse_date" 
+                       placeholder="YYYYMMDD (e.g., 20260124)"
+                       pattern="\d{8}"
+                       maxlength="8"
+                       required>
+                <small>Format: YYYYMMDD (8 digits)</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="start_hour">Start Hour (0-23):</label>
+                <select id="start_hour" name="start_hour" required>
+                    <option value="">-- Select Start Hour --</option>
+                    {% for hour in range(24) %}
+                    <option value="{{ hour }}">{{ '%02d'|format(hour) }}:00</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="end_hour">End Hour (0-23):</label>
+                <select id="end_hour" name="end_hour" required>
+                    <option value="">-- Select End Hour --</option>
+                    {% for hour in range(24) %}
+                    <option value="{{ hour }}">{{ '%02d'|format(hour) }}:00</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="loading" id="loading">
+                ⏳ Processing redemption... Please wait.
+            </div>
+            
+            <div>
+                <button type="button" class="btn-primary" id="processBtn" onclick="processRedemption()">
+                    Process Redemption
+                </button>
+                <button type="button" class="btn-secondary" onclick="window.location.href='/main'">
+                    Back to Main
+                </button>
+            </div>
+        </form>
+        
+        <div id="resultMessage"></div>
+    </div>
+
+    <script>
+        // Process redemption form submission
+        async function processRedemption() {
+            // Get form data
+            const reimburseDate = document.getElementById('reimburse_date').value.trim();
+            const startHour = document.getElementById('start_hour').value;
+            const endHour = document.getElementById('end_hour').value;
+            
+            // Validate inputs
+            if (!reimburseDate || !startHour || !endHour) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+            
+            // Validate date format
+            if (!/^\d{8}$/.test(reimburseDate)) {
+                showMessage('Invalid date format. Please use YYYYMMDD (8 digits)', 'error');
+                return;
+            }
+            
+            // Validate hour range
+            const startHourInt = parseInt(startHour);
+            const endHourInt = parseInt(endHour);
+            
+            if (startHourInt >= endHourInt) {
+                showMessage('Start hour must be less than end hour', 'error');
+                return;
+            }
+            
+            // Confirm before processing
+            const confirmMsg = `Process redemption for ${reimburseDate} from ${String(startHourInt).padStart(2, '0')}:00 to ${String(endHourInt).padStart(2, '0')}:00?`;
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('resultMessage').innerHTML = '';
+            
+            try {
+                // Send POST request to API
+                const response = await fetch('/api/process_redemption', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reimburse_date: reimburseDate,
+                        start_hour: startHourInt,
+                        end_hour: endHourInt
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('processBtn').disabled = false;
+                
+                if (data.status === 'success') {
+                    // Show success message
+                    let message = `<h3>✅ ${data.message}</h3>`;
+                    message += `<p><strong>Output Folder:</strong> ${data.output_folder}</p>`;
+                    
+                    if (data.files_generated && data.files_generated.length > 0) {
+                        message += '<p><strong>Generated Files:</strong></p>';
+                        message += '<ul class="file-list">';
+                        data.files_generated.forEach(file => {
+                            message += `<li>📄 ${file}</li>`;
+                        });
+                        message += '</ul>';
+                    }
+                    
+                    showMessage(message, 'success');
+                    
+                    // Optionally reset form after 3 seconds
+                    setTimeout(() => {
+                        if (confirm('Redemption complete! Do you want to reload the page?')) {
+                            window.location.reload();
+                        }
+                    }, 3000);
+                    
+                } else {
+                    // Show error message
+                    showMessage(`❌ ${data.message}`, 'error');
+                }
+                
+            } catch (error) {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('processBtn').disabled = false;
+                
+                showMessage(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Show message in result div
+        function showMessage(message, type) {
+            const resultDiv = document.getElementById('resultMessage');
+            
+            let className = 'info-box';
+            if (type === 'success') {
+                className = 'success-box';
+            } else if (type === 'error') {
+                className = 'error-box';
+            } else if (type === 'warning') {
+                className = 'warning-box';
+            }
+            
+            resultDiv.innerHTML = `<div class="${className}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

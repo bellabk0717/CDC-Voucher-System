@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="2;url=/main">
+    <title>Launching Mobile App</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">
+    <style>
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            border-radius: 6px;
+            padding: 30px;
+            margin: 50px auto;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #28a745;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-box">
+            <h2>✅ Mobile App Launched</h2>
+            <div class="loading-spinner"></div>
+            <p>The mobile app window is opening...</p>
+            <p><small>Redirecting back to main page in 2 seconds...</small></p>
+            <br>
+            <a href="/main">Back to Main</a>
+        </div>
+    </div>
+</body>
+</html>

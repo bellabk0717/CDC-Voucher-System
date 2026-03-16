@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <div class="container">
+        <h2 style="color: red;">{{ title }}</h2>
+        <p>{{ message }}</p>
+        
+        {% if details %}
+        <p><strong>{{ details }}</strong></p>
+        {% endif %}
+        
+        <form action="{{ back_url }}" method="get">
+            <button type="submit">Try Again</button>
+        </form>
+        
+        <form action="/main" method="get" style="margin-top: 10px;">
+            <button type="submit">Back to Main</button>
+        </form>
+    </div>
+</body>
+</html>

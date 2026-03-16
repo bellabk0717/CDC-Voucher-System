@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merchant Registration</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">
+  <style>
+    /* Floating label container */
+    .input-group {
+      position: relative;
+      margin-top: 24px;
+    }
+
+    .input-group label {
+      position: absolute;
+      left: 10px;
+      top: 12px;
+      color: #999;
+      font-size: 14px;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      background: white;
+      padding: 0 4px;
+    }
+
+    .input-group input,
+    .input-group select {
+      width: 420px;
+      padding: 12px 10px 8px 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: #4CAF50;
+    }
+
+    /* Float label when input has value or is focused */
+    .input-group input:focus + label,
+    .input-group input:not(:placeholder-shown) + label,
+    .input-group select:focus + label,
+    .input-group select:not([value=""]) + label {
+      top: -8px;
+      left: 8px;
+      font-size: 12px;
+      color: #4CAF50;
+    }
+
+    button { margin-top: 24px; padding: 10px 16px; cursor: pointer; }
+    .msg { margin-top: 16px; padding: 10px; border-radius: 8px; }
+    .ok { background: #e8fff0; }
+    .err { background: #ffecec; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Merchant Registration</h2>
+
+    <div class="input-group">
+      <input id="merchant_name" type="text" placeholder=" " />
+      <label>Merchant Name (e.g., ABC Minimart)</label>
+    </div>
+
+    <div class="input-group">
+      <input id="uen" type="text" placeholder=" " />
+      <label>UEN (e.g., 201912345K)</label>
+    </div>
+
+    <div class="input-group">
+      <select id="bank_select"></select>
+      <label>Bank</label>
+    </div>
+
+    <div class="input-group">
+      <select id="branch_select"></select>
+      <label>Branch</label>
+    </div>
+
+    <div class="input-group">
+      <input id="account_number" type="text" placeholder=" " />
+      <label>Account Number (e.g., 1234567890)</label>
+    </div>
+
+    <div class="input-group">
+      <input id="account_holder_name" type="text" placeholder=" " />
+      <label>Account Holder Name (e.g., ABC PTE LTD)</label>
+    </div>
+
+    <button onclick="submitForm()">Register</button>
+    <form action="/main" method="get" style="display:inline;">
+      <button type="submit">Back to Main</button>
+    </form>
+    <div id="message"></div>
+
+    <script>
+      // Load banks on page load
+      window.onload = async function() {
+        await loadBanks();
+      }
+
+      // Fetch and populate bank dropdown
+      async function loadBanks() {
+        const res = await fetch('/api/banks');
+        const data = await res.json();
+
+        const bankSelect = document.getElementById('bank_select');
+        bankSelect.innerHTML = '';
+
+        let opt0 = document.createElement('option');
+        opt0.value = '';
+        opt0.textContent = '-- Select Bank --';
+        bankSelect.appendChild(opt0);
+
+        if (data.status !== 'success') {
+          showMessage('Failed to load banks', true);
+          return;
+        }
+
+        // Populate banks dropdown
+        data.banks.forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b.bank_code;
+          opt.textContent = b.bank_code + ' - ' + b.bank_name;
+          bankSelect.appendChild(opt);
+        });
+
+        // Add event listener for branch loading
+        bankSelect.addEventListener('change', async function() {
+          await loadBranches(this.value);
+        });
+      }
+
+      // Fetch and populate branch dropdown based on selected bank
+      async function loadBranches(bankCode) {
+        const branchSelect = document.getElementById('branch_select');
+        branchSelect.innerHTML = '';
+
+        if (!bankCode) return;
+
+        const res = await fetch(`/api/banks/${bankCode}/branches`);
+        const data = await res.json();
+
+        let opt0 = document.createElement('option');
+        opt0.value = '';
+        opt0.textContent = '-- Select Branch --';
+        branchSelect.appendChild(opt0);
+
+        if (data.status !== 'success') {
+          showMessage('Failed to load branches', true);
+          return;
+        }
+
+        // Populate branches dropdown
+        data.branches.forEach(br => {
+          const opt = document.createElement('option');
+          opt.value = br.branch_code;
+          opt.textContent = br.branch_code + ' - ' + br.branch_name;
+          branchSelect.appendChild(opt);
+        });
+      }
+
+      // Show success/error message
+      function showMessage(msg, isError=false) {
+        const box = document.getElementById('message');
+        box.className = 'msg ' + (isError ? 'err' : 'ok');
+        box.textContent = msg;
+      }
+
+      // Submit registration form
+      async function submitForm() {
+        // Get form values
+        const merchantName = document.getElementById('merchant_name').value.trim();
+        const uen = document.getElementById('uen').value.trim();
+        const bankCode = document.getElementById('bank_select').value.trim();
+        const branchCode = document.getElementById('branch_select').value.trim();
+        const accountNumber = document.getElementById('account_number').value.trim();
+        const accountHolderName = document.getElementById('account_holder_name').value.trim();
+
+        // 1. Check all fields are filled
+        if (!merchantName || !uen || !bankCode || !branchCode || !accountNumber || !accountHolderName) {
+          showMessage('Please fill in all fields', true);
+          return; // Stop submission
+        }
+
+        // 2. Validate UEN format (9 digits + 1 letter)
+        if (uen.length !== 10) {
+          showMessage('UEN must be 10 characters (9 digits + 1 letter, e.g., 201234567A)', true);
+          return;
+        }
+        if (!/^\d{9}[A-Z]$/i.test(uen)) {
+          showMessage('UEN format: 9 digits followed by 1 letter (e.g., 201234567A)', true);
+          return;
+        }
+
+        // 3. Validate account number (9 or 10 digits)
+        const digitsOnly = accountNumber.replace(/[-\s]/g, '');
+        if (digitsOnly.length !== 9 && digitsOnly.length !== 10) {
+          showMessage('Account number must be 9 or 10 digits', true);
+          return;
+        }
+        if (!/^\d+$/.test(digitsOnly)) {
+          showMessage('Account number should only contain digits', true);
+          return;
+        }
+
+        // 4. Validate merchant name (minimum 2 characters)
+        if (merchantName.length < 2) {
+          showMessage('Merchant name too short (minimum 2 characters)', true);
+          return;
+        }
+
+        // All validations passed, submit to backend
+        const payload = {
+          merchant_name: merchantName,
+          uen: uen.toUpperCase(),
+          bank_code: bankCode,
+          branch_code: branchCode,
+          account_number: accountNumber,
+          account_holder_name: accountHolderName
+        };
+
+        // Send POST request to API
+        const res = await fetch('/api/merchants/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.status === 'success') {
+          showMessage('Registered! Merchant ID: ' + data.merchant.merchant_id);
+        } else {
+          showMessage('Error: ' + (data.message || 'Unknown error'), true);
+        }
+      }
+    </script>
+  </div>
+</body>
+</html>
